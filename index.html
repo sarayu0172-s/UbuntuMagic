@@ -1,1 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UbuntuMagic</title>
+  <style>
+    :root {
+      --bg: #160b1f;
+      --bg-soft: #22102f;
+      --panel: rgba(35, 22, 46, 0.82);
+      --panel-2: rgba(49, 31, 63, 0.88);
+      --text: #f3eefc;
+      --muted: #cbb9dc;
+      --accent: #e95420;
+      --accent-2: #77216f;
+      --accent-3: #ffb347;
+      --border: rgba(255,255,255,0.12);
+      --success: #3ddc97;
+      --warning: #ffcf5c;
+      --danger: #ff6b81;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --dock-width: 86px;
+      --glass: blur(16px);
+    }
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(233,84,32,0.28), transparent 28%),
+        radial-gradient(circle at top right, rgba(119,33,111,0.25), transparent 32%),
+        linear-gradient(135deg, #120815 0%, #190d24 32%, #251032 65%, #120912 100%);
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .wallpaper-overlay {
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(transparent, rgba(0,0,0,0.12)),
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.05), transparent 18%),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.05), transparent 22%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px 0 calc(var(--dock-width) + 20px);
+      background: rgba(16, 11, 22, 0.58);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 35%, #ffb347, #e95420 58%, #77216f 100%);
+      box-shadow: 0 0 20px rgba(233,84,32,0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-logo::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 2px solid rgba(255,255,255,0.7);
+      border-radius: 50%;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-chip {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+    }
+
+    .clock {
+      min-width: 165px;
+      text-align: right;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .dock {
+      position: fixed;
+      top: 70px;
+      left: 16px;
+      bottom: 16px;
+      width: var(--dock-width);
+      padding: 12px 10px;
+      background: rgba(17, 12, 23, 0.62);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      z-index: 25;
+      box-shadow: var(--shadow);
+    }
+
+    .dock-title {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 6px;
+      margin-bottom: 4px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .dock-item {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+      user-select: none;
+    }
+
+    .dock-item:hover,
+    .dock-item.active {
+      transform: translateY(-4px) scale(1.06);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+      background: linear-gradient(180deg, rgba(233,84,32,0.35), rgba(119,33,111,0.3));
+    }
+
+    .main {
+      position: relative;
+      z-index: 2;
+      padding: 88px 28px 28px calc(var(--dock-width) + 38px);
+      min-height: 100vh;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      backdrop-filter: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-left {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-left::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      right: -60px;
+      top: -60px;
+      background: radial-gradient(circle, rgba(233,84,32,0.42), transparent 65%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      color: var(--accent-3);
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 1.02;
+      margin-bottom: 16px;
+      letter-spacing: -0.03em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #fff 0%, #ffcc88 30%, #e95420 70%, #ff7f50 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .btn {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      transition: transform 0.22s ease, opacity 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.22);
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent), #ff7f50);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stats-row {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini-stat {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .mini-stat .label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 6px;
+    }
+
+    .mini-stat .value {
+      font-size: 1.65rem;
+      font-weight: 800;
+    }
+
+    .hero-right {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .terminal {
+      background: #170d1d;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      min-height: 420px;
+    }
+
+    .terminal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .term-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .term-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green { background: #28c840; }
+
+    .terminal-body {
+      padding: 16px;
+      font-family: Consolas, "Courier New", monospace;
+      color: #e9ffe9;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      flex: 1;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .prompt {
+      color: #89ff89;
+    }
+
+    .user {
+      color: #8bd5ff;
+    }
+
+    .highlight {
+      color: #ffb347;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-card {
+      padding: 24px;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      margin-bottom: 10px;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.65;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.07);
+    }
+
+    .feature h3 {
+      margin-bottom: 8px;
+      font-size: 1.03rem;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, rgba(233,84,32,0.4), rgba(119,33,111,0.4));
+      font-size: 1.2rem;
+    }
+
+    .system-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .progress-box {
+      background: rgba(255,255,255,0.05);
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .progress-track {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-3));
+      width: 0%;
+      transition: width 1.2s ease;
+    }
+
+    .command-panel {
+      margin-bottom: 24px;
+      padding: 24px;
+    }
+
+    .command-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .command-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      outline: none;
+      font-size: 0.98rem;
+    }
+
+    .command-output {
+      margin-top: 18px;
+      padding: 18px;
+      min-height: 110px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.24);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-family: Consolas, "Courier New", monospace;
+      color: #dbffe0;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .gallery-card {
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      min-height: 210px;
+    }
+
+    .gallery-card::after {
+      content: "";
+      position: absolute;
+      right: -30px;
+      bottom: -30px;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 68%);
+    }
+
+    .gallery-card h3 {
+      font-size: 1.12rem;
+      margin-bottom: 10px;
+    }
+
+    .gallery-card p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      color: #ffd39d;
+      font-size: 0.84rem;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(0,0,0,0.14);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 10px;
+    }
+
+    .footer strong {
+      color: #fff;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: rgba(23, 14, 31, 0.95);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: var(--shadow);
+      transform: translateY(120px);
+      opacity: 0;
+      transition: all 0.4s ease;
+      z-index: 50;
+      max-width: 320px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .hidden-section {
+      display: none;
+    }
+
+    .visible-section {
+      display: block;
+      animation: fadeIn 0.45s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1100px) {
+      .hero,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .dock {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        height: 76px;
+        top: auto;
+        bottom: 12px;
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .dock-title {
+        display: none;
+      }
+
+      .topbar {
+        padding-left: 16px;
+      }
+
+      .main {
+        padding: 84px 16px 108px 16px;
+      }
+
+      .stats-row,
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 580px) {
+      .topbar {
+        gap: 12px;
+        height: auto;
+        min-height: 54px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .topbar-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .hero-left,
+      .hero-right,
+      .section-card,
+      .command-panel,
+      .gallery-card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wallpaper-overlay"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo"></div>
+      <span>UbuntuMagic</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-chip" id="statusText">System Ready</div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <aside class="dock">
+    <div class="dock-title">Apps</div>
+    <div class="dock-item active" data-section="home" title="Home">🏠</div>
+    <div class="dock-item" data-section="features" title="Features">✨</div>
+    <div class="dock-item" data-section="terminal" title="Terminal">🖥️</div>
+    <div class="dock-item" data-section="lab" title="Magic Lab">🧪</div>
+    <div class="dock-item" id="themeToggle" title="Theme Toggle">🌗</div>
+  </aside>
+
+  <main class="main">
+    <section id="home" class="visible-section">
+      <div class="hero">
+        <div class="hero-left card">
+          <div class="eyebrow">⚡ Ubuntu-inspired • Elegant • Interactive</div>
+          <h1>
+            Welcome to <span class="gradient-text">UbuntuMagic</span>
+          </h1>
+          <p>
+            A fully working single-page experience inspired by the Ubuntu desktop:
+            bold colors, glass panels, a command terminal, animated metrics, and a
+            magical interface that feels modern, fast, and alive. This is a strong
+            starter homepage for your repository and can later grow into a portfolio,
+            Linux utility dashboard, product landing page, or themed web app.
+          </p>
+
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="launchBtn">Launch Magic</button>
+            <button class="btn btn-secondary" id="scrollBtn">Explore Features</button>
+          </div>
+
+          <div class="stats-row">
+            <div class="mini-stat">
+              <div class="label">Desktop Feel</div>
+              <div class="value" id="stat1">0%</div>
+            </div>
+            <div class="mini-stat">
+              <div class="label">Animations</div>
+              <div class="value" id="stat2">0+</div>
+            </div>
+            <div class="mini-stat">
+              <div class="label">Interactive Blocks</div>
+              <div class="value" id="stat3">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-right card">
+          <div class="terminal">
+            <div class="terminal-top">
+              <div class="term-dots">
+                <div class="term-dot dot-red"></div>
+                <div class="term-dot dot-yellow"></div>
+                <div class="term-dot dot-green"></div>
+              </div>
+              <div>ubuntu@magic: ~/dashboard</div>
+            </div>
+            <div class="terminal-body" id="autoTerminal"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="section-card card">
+          <h2 class="section-title">Why this fits the repo name</h2>
+          <p class="section-subtitle">
+            “UbuntuMagic” sounds like a beautiful Ubuntu-themed project. So this template
+            turns that name into a premium visual identity: desktop-inspired layout,
+            Linux mood, terminal interaction, glowing orange-purple branding, and “magic”
+            effects through animation and UI polish.
+          </p>
+
+          <div class="features">
+            <div class="feature">
+              <div class="feature-icon">🧡</div>
+              <h3>Ubuntu Color Language</h3>
+              <p>Uses a warm orange-purple palette inspired by Ubuntu branding while keeping a premium modern feel.</p>
+            </div>
+            <div class="feature">
+              <div class="feature-icon">🪄</div>
+              <h3>Magic Effects</h3>
+              <p>Animated counters, simulated terminal logs, progress bars, section switching, and smooth UI reactions.</p>
+            </div>
+            <div class="feature">
+              <div class="feature-icon">🖥️</div>
+              <h3>Desktop Style Layout</h3>
+              <p>Top bar, dock, glass cards, and panels create the feeling of a browser-based Ubuntu desktop shell.</p>
+            </div>
+            <div class="feature">
+              <div class="feature-icon">⚙️</div>
+              <h3>Easy to Extend</h3>
+              <p>You can later add login, packages, downloads, documentation, screenshots, or GitHub API integration.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card card">
+          <h2 class="section-title">System Monitor</h2>
+          <p class="section-subtitle">
+            Animated progress bars give the page a live system feel. These are demo values,
+            but you can later connect them to real APIs or backend data.
+          </p>
+
+          <div class="system-panel">
+            <div class="progress-box">
+              <div class="progress-label">
+                <span>CPU Magic Engine</span>
+                <span id="cpuLabel">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="cpuBar"></div>
+              </div>
+            </div>
+
+            <div class="progress-box">
+              <div class="progress-label">
+                <span>Memory Portal</span>
+                <span id="memLabel">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="memBar"></div>
+              </div>
+            </div>
+
+            <div class="progress-box">
+              <div class="progress-label">
+                <span>UI Renderer</span>
+                <span id="uiLabel">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="uiBar"></div>
+              </div>
+            </div>
+
+            <div class="progress-box">
+              <div class="progress-label">
+                <span>Package Aura</span>
+                <span id="pkgLabel">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="pkgBar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="hidden-section">
+      <div class="section-card card">
+        <h2 class="section-title">UbuntuMagic Modules</h2>
+        <p class="section-subtitle">
+          This section can act like a roadmap or product overview. Each card below can later
+          become a real page, feature, or app inside your project.
+        </p>
+      </div>
+
+      <div class="gallery">
+        <div class="gallery-card card">
+          <h3>Magic Desktop</h3>
+          <p>
+            A browser-based Ubuntu-themed control center with widgets, shortcuts,
+            notifications, and beautiful shell-like navigation.
+          </p>
+          <span class="tag">Desktop UI</span>
+        </div>
+
+        <div class="gallery-card card">
+          <h3>Terminal Wizard</h3>
+          <p>
+            An interactive command playground for showing package commands, Linux tips,
+            fake terminal demos, tutorials, or onboarding steps.
+          </p>
+          <span class="tag">CLI Experience</span>
+        </div>
+
+        <div class="gallery-card card">
+          <h3>Package Showcase</h3>
+          <p>
+            Display apps, tools, categories, installation snippets, community scripts,
+            and feature bundles in a more engaging way.
+          </p>
+          <span class="tag">Apps & Tools</span>
+        </div>
+
+        <div class="gallery-card card">
+          <h3>Theme Engine</h3>
+          <p>
+            Switch between dark, vibrant, and minimal Ubuntu-like themes with dynamic
+            gradients, wallpapers, and component behavior.
+          </p>
+          <span class="tag">Theming</span>
+        </div>
+
+        <div class="gallery-card card">
+          <h3>System Animation Lab</h3>
+          <p>
+            Build loaders, shell transitions, dock effects, visual dashboards, and
+            rich onboarding animations that make the site memorable.
+          </p>
+          <span class="tag">Motion Design</span>
+        </div>
+
+        <div class="gallery-card card">
+          <h3>Open Source Portal</h3>
+          <p>
+            Turn the repo into a project homepage with contribution steps, docs,
+            release notes, screenshots, and feature timelines.
+          </p>
+          <span class="tag">Project Hub</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="terminal" class="hidden-section">
+      <div class="command-panel card">
+        <h2 class="section-title">Interactive Terminal</h2>
+        <p class="section-subtitle">
+          Type simple demo commands like <strong>help</strong>, <strong>about</strong>,
+          <strong>features</strong>, <strong>install</strong>, <strong>clear</strong>,
+          <strong>date</strong>, or <strong>magic</strong>.
+        </p>
+
+        <div class="command-bar">
+          <input
+            type="text"
+            id="commandInput"
+            class="command-input"
+            placeholder="Type a command..."
+          />
+          <button class="btn btn-primary" id="runCommand">Run</button>
+        </div>
+
+        <div class="command-output" id="commandOutput">
+ubuntu@magic:~$ help
+
+Available commands:
+- help
+- about
+- features
+- install
+- date
+- magic
+- clear
+        </div>
+      </div>
+    </section>
+
+    <section id="lab" class="hidden-section">
+      <div class="grid">
+        <div class="section-card card">
+          <h2 class="section-title">Magic Lab</h2>
+          <p class="section-subtitle">
+            This extra section makes the project feel bigger and more complete. It can be
+            reused later for experiments, screenshots, release notes, changelogs, or demos.
+          </p>
+
+          <div class="features">
+            <div class="feature">
+              <div class="feature-icon">🌌</div>
+              <h3>Dynamic Atmosphere</h3>
+              <p>The background and lighting can be adjusted based on time, theme mode, or user interaction.</p>
+            </div>
+            <div class="feature">
+              <div class="feature-icon">📦</div>
+              <h3>Install Recipes</h3>
+              <p>Great place to show shell scripts, package commands, or a guided setup walkthrough.</p>
+            </div>
+            <div class="feature">
+              <div class="feature-icon">🔐</div>
+              <h3>Future Auth Support</h3>
+              <p>You can plug in GitHub login, profile pages, bookmarks, or personalization later.</p>
+            </div>
+            <div class="feature">
+              <div class="feature-icon">🚀</div>
+              <h3>Deployment Ready</h3>
+              <p>Since it is plain HTML, you can host it quickly on GitHub Pages, Netlify, or Vercel.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card card">
+          <h2 class="section-title">Project Suggestion</h2>
+          <p class="section-subtitle">
+            For this repository name, I’d suggest positioning it as:
+            <strong>“An Ubuntu-inspired web experience with magical UI and terminal interactions.”</strong>
+          </p>
+
+          <div class="command-output">
+Possible repo directions:
+
+1. Ubuntu-themed portfolio site
+2. Linux tools showcase page
+3. Interactive shell tutorial website
+4. Fake Ubuntu desktop in browser
+5. Open-source project landing page
+6. App launcher dashboard
+7. Ubuntu customization gallery
+
+Best starting point:
+A premium landing page + terminal demo + feature sections.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Built for <strong>UbuntuMagic</strong> — a stylish Ubuntu-inspired HTML project starter.
+    </footer>
+  </main>
+
+  <div class="toast" id="toast">Magic launched successfully.</div>
+
+  <script>
+    const clock = document.getElementById("clock");
+    const statusText = document.getElementById("statusText");
+    const dockItems = document.querySelectorAll(".dock-item[data-section]");
+    const sections = document.querySelectorAll("main section");
+    const launchBtn = document.getElementById("launchBtn");
+    const scrollBtn = document.getElementById("scrollBtn");
+    const themeToggle = document.getElementById("themeToggle");
+    const toast = document.getElementById("toast");
+    const autoTerminal = document.getElementById("autoTerminal");
+
+    const terminalLines = [
+      "[boot] Launching UbuntuMagic interface...",
+      "[init] Loading desktop shell modules...",
+      "[theme] Applying orange-purple Ubuntu palette...",
+      "[dock] Dock services active.",
+      "[ui] Glass components ready.",
+      "[magic] Spark animation engine enabled.",
+      "[system] Checking visual modules...",
+      "[ok] Terminal online.",
+      "",
+      "ubuntu@magic:~$ echo \"Welcome to UbuntuMagic\"",
+      "Welcome to UbuntuMagic",
+      "",
+      "ubuntu@magic:~$ ls modules/",
+      "desktop-shell  theme-engine  terminal-wizard  package-showcase",
+      "",
+      "ubuntu@magic:~$ status",
+      "All core modules are healthy."
+    ];
+
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2400);
+    }
+
+    function switchSection(id) {
+      sections.forEach(section => {
+        section.classList.remove("visible-section");
+        section.classList.add("hidden-section");
+      });
+
+      const activeSection = document.getElementById(id);
+      if (activeSection) {
+        activeSection.classList.remove("hidden-section");
+        activeSection.classList.add("visible-section");
+      }
+
+      dockItems.forEach(item => {
+        item.classList.toggle("active", item.dataset.section === id);
+      });
+
+      statusText.textContent = "Viewing: " + id.charAt(0).toUpperCase() + id.slice(1);
+    }
+
+    dockItems.forEach(item => {
+      item.addEventListener("click", () => {
+        switchSection(item.dataset.section);
+      });
+    });
+
+    launchBtn.addEventListener("click", () => {
+      animateStats();
+      animateBars();
+      showToast("UbuntuMagic launched.");
+      switchSection("home");
+    });
+
+    scrollBtn.addEventListener("click", () => {
+      switchSection("features");
+      showToast("Feature gallery opened.");
+    });
+
+    let darkMode = true;
+    themeToggle.addEventListener("click", () => {
+      darkMode = !darkMode;
+
+      if (!darkMode) {
+        document.documentElement.style.setProperty("--bg", "#f4edf7");
+        document.documentElement.style.setProperty("--bg-soft", "#fff6ff");
+        document.documentElement.style.setProperty("--panel", "rgba(255,255,255,0.8)");
+        document.documentElement.style.setProperty("--panel-2", "rgba(255,255,255,0.92)");
+        document.documentElement.style.setProperty("--text", "#2d1537");
+        document.documentElement.style.setProperty("--muted", "#6f5c79");
+        document.documentElement.style.setProperty("--border", "rgba(45,21,55,0.12)");
+        document.body.style.background =
+          "radial-gradient(circle at top left, rgba(233,84,32,0.18), transparent 28%), radial-gradient(circle at top right, rgba(119,33,111,0.14), transparent 32%), linear-gradient(135deg, #fff7fb 0%, #f7edf8 38%, #f3ebfb 68%, #fff5f2 100%)";
+        showToast("Light theme enabled.");
+      } else {
+        document.documentElement.style.setProperty("--bg", "#160b1f");
+        document.documentElement.style.setProperty("--bg-soft", "#22102f");
+        document.documentElement.style.setProperty("--panel", "rgba(35, 22, 46, 0.82)");
+        document.documentElement.style.setProperty("--panel-2", "rgba(49, 31, 63, 0.88)");
+        document.documentElement.style.setProperty("--text", "#f3eefc");
+        document.documentElement.style.setProperty("--muted", "#cbb9dc");
+        document.documentElement.style.setProperty("--border", "rgba(255,255,255,0.12)");
+        document.body.style.background =
+          "radial-gradient(circle at top left, rgba(233,84,32,0.28), transparent 28%), radial-gradient(circle at top right, rgba(119,33,111,0.25), transparent 32%), linear-gradient(135deg, #120815 0%, #190d24 32%, #251032 65%, #120912 100%)";
+        showToast("Dark theme enabled.");
+      }
+    });
+
+    function animateValue(id, start, end, duration, suffix = "") {
+      const el = document.getElementById(id);
+      const range = end - start;
+      let startTime = null;
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const current = Math.floor(progress * range + start);
+
+        el.textContent = current + suffix;
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          el.textContent = end + suffix;
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function animateStats() {
+      animateValue("stat1", 0, 100, 1400, "%");
+      animateValue("stat2", 0, 18, 1500, "+");
+      animateValue("stat3", 0, 9, 1600, "");
+    }
+
+    function animateBar(barId, labelId, target) {
+      const bar = document.getElementById(barId);
+      const label = document.getElementById(labelId);
+      bar.style.width = target + "%";
+
+      let current = 0;
+      const interval = setInterval(() => {
+        current++;
+        label.textContent = current + "%";
+        if (current >= target) clearInterval(interval);
+      }, 15);
+    }
+
+    function animateBars() {
+      animateBar("cpuBar", "cpuLabel", 86);
+      animateBar("memBar", "memLabel", 74);
+      animateBar("uiBar", "uiLabel", 93);
+      animateBar("pkgBar", "pkgLabel", 68);
+    }
+
+    function typeTerminal(lines, element, speed = 18, delayBetweenLines = 180) {
+      let lineIndex = 0;
+      let charIndex = 0;
+      let currentLine = "";
+
+      function type() {
+        if (lineIndex >= lines.length) return;
+
+        const fullLine = lines[lineIndex];
+
+        if (charIndex < fullLine.length) {
+          currentLine += fullLine.charAt(charIndex);
+          element.textContent =
+            element.textContent.replace(/█?$/, "") + fullLine.charAt(charIndex) + "█";
+          charIndex++;
+          setTimeout(type, speed);
+        } else {
+          element.textContent = element.textContent.replace(/█$/, "") + "\n";
+          lineIndex++;
+          charIndex = 0;
+          currentLine = "";
+          setTimeout(type, delayBetweenLines);
+        }
+      }
+
+      element.textContent = "";
+      type();
+    }
+
+    typeTerminal(terminalLines, autoTerminal);
+
+    const commandInput = document.getElementById("commandInput");
+    const runCommand = document.getElementById("runCommand");
+    const commandOutput = document.getElementById("commandOutput");
+
+    const commands = {
+      help: `Available commands:
+- help
+- about
+- features
+- install
+- date
+- magic
+- clear`,
+      about: `UbuntuMagic is a Ubuntu-inspired HTML landing page with:
+- desktop-style UI
+- dock navigation
+- animated terminal
+- feature sections
+- theme toggling
+- interactive command panel`,
+      features: `Core features:
+1. Ubuntu color-inspired interface
+2. Responsive glassmorphism layout
+3. Animated counters and progress bars
+4. Terminal simulator
+5. Section switching with dock
+6. Theme toggle support`,
+      install: `Quick start:
+1. Save this file as index.html
+2. Open it in browser
+3. Push to GitHub
+4. Enable GitHub Pages if needed`,
+      date: new Date().toString(),
+      magic: `✨ UbuntuMagic initialized
+
+Modules online:
+- shell-ui
+- theme-engine
+- dock-control
+- terminal-wizard
+- showcase-grid
+
+Status: Everything looks magical.`,
+      clear: ""
+    };
+
+    function runTerminalCommand() {
+      const raw = commandInput.value.trim();
+      const cmd = raw.toLowerCase();
+
+      if (!raw) return;
+
+      if (cmd === "clear") {
+        commandOutput.textContent = "";
+        commandInput.value = "";
+        showToast("Terminal cleared.");
+        return;
+      }
+
+      if (commands[cmd]) {
+        commandOutput.textContent += `\nubuntu@magic:~$ ${raw}\n${commands[cmd]}\n`;
+      } else {
+        commandOutput.textContent += `\nubuntu@magic:~$ ${raw}\nCommand not found: ${raw}\nTry: help\n`;
+      }
+
+      commandOutput.scrollTop = commandOutput.scrollHeight;
+      commandInput.value = "";
+    }
+
+    runCommand.addEventListener("click", runTerminalCommand);
+    commandInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") runTerminalCommand();
+    });
+
+    animateStats();
+    animateBars();
+  </script>
+</body>
+</html>
